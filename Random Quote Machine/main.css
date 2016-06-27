@@ -1,0 +1,39 @@
+.demo-card-wide.mdl-card {
+  width: 100%;
+}
+.demo-card-wide > .mdl-card__title {
+  color: #fff;
+  height: 176px;
+  background: #00796B center / cover;
+}
+.demo-card-wide > .mdl-card__menu {
+  color: #fff;
+}
+.demo-card-square.mdl-card {
+  width: 70%;
+  height: 30em;
+  top: 5em;
+  left: 15%;
+}
+.demo-card-square > .mdl-card__title {
+  color: #fff;
+  background: #009688 bottom right 15% no-repeat;
+}
+
+.demo-card-wide {
+  background: #009688;
+}
+
+.mdl-card__supporting-text {
+  color: #212121;
+  font-weight: bold;
+}
+
+#quote-text {
+  font-size: 3em;
+}
+
+#tweet {
+  position: absolute;
+  right: 5px;
+}
