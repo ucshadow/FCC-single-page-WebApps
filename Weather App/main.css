@@ -1,0 +1,42 @@
+body {
+  background: #212121;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+.weather {
+  position: relative;
+  top: 20em;
+  left: 30%;
+  width: 60em;
+  height: 30em;
+  background-color: white;
+  opacity: 0.8;
+  padding: 1em;
+}
+
+.main-data, .descriptions {
+  width: 100%;
+  float: left;
+  height: 50%;
+  font-size: 1.8em;
+}
+
+.single-info, .desc {
+  margin-top: 0.7em;
+  margin-left: 0.7em;
+}
+
+.units {
+  background: none;
+  border: none;
+  font-size: 2em;
+  outline: none;
+  cursor: pointer;
+}
+
+.location {
+  font-size: 2em;
+}
