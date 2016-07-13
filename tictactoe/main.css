@@ -1,0 +1,35 @@
+.container {
+  margin-top: 10%;
+}
+
+.board {
+  background: #455A64;
+  height: 607px;
+  width: 607px;
+  padding: 3px;
+  float: left;
+}
+
+.cell {
+  float: left;
+  height: 200px;
+  width: 200px;
+  background: #607D8B;
+  border: 2px solid black;
+  font-size: 9em;
+  text-align: center;
+  cursor: pointer;
+  color: #FFFFFF;
+}
+
+.info {
+  float: left;
+  margin-left: 1em;
+}
+
+.winner {
+  margin-top: 2em;
+  font-size: 3em;
+  color: green;
+  font-weight: bold;
+}

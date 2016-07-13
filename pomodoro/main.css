@@ -1,0 +1,58 @@
+.container {
+  position: relative;
+  width: 300px;
+  height: 225px;
+
+}
+
+.tomato {
+  background-image: url("tomato.png");
+  width: 300px;
+  height: 225px;
+  position: absolute;
+  z-index: 100;
+}
+
+.green {
+  background-image: url("green.jpg");
+  width: 300px;
+  height: 225px;
+  position: absolute;
+  z-index: 51;
+}
+
+.red {
+  background-image: url("red.jpg");
+  width: 300px;
+  height: 225px;
+  position: absolute;
+  z-index: 50;
+}
+
+.timer {
+  width: 300px;
+  height: 225px;
+  position: absolute;
+  z-index: 150;
+  color: white;
+  font-size: 2em;
+  top: 125px;
+  left: 125px;
+  font-weight: bold;
+}
+
+.work-buttons, .pause-buttons, .start-stop-buttons {
+  width: 200px;
+}
+
+.all-buttons {
+  margin-top: 200px;
+}
+
+.main {
+  margin-left: 40%;
+}
+
+.stop {
+  float: right;
+}

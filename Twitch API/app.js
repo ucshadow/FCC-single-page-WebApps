@@ -1,3 +1,9 @@
+let streams = ["ESL_SC2", "OgamingSC2", "cretetion", "freecodecamp", "storbeck", "habathcx", "RobotCaleb", "noobs2ninjas",
+"brunofin", "comster404", "BeyondTheSummit"];
+let info = "https://api.twitch.tv/kraken/channels/";
+let isLive = "https://api.twitch.tv/kraken/streams/";
+
+
 class App extends React.Component {
 
   componentDidMount() {
@@ -12,7 +18,8 @@ class App extends React.Component {
     return (
       <div className="main-container">
         <Welcome />
-        <Search />
+        <Add />
+        <GetStreams />
       </div>
     )
   }
@@ -27,54 +34,58 @@ const Welcome = props => (
          href="https://en.wikipedia.org/wiki/Special:Random"
          style={{textDecoration: "none"}}
          target="_blank">
-        Welcome to my Wikipeda Article Viewer! Click for a random article
+        Welcome to my Twitch TV API usage example page
       </a>
     </div>
   </div>
 );
 
-class Search extends React.Component {
+
+class GetStreams extends React.Component {
+
+  constructor() {
+    super();
+
+    this.mapStreams = this.mapStreams.bind(this);
+  }
+
+  mapStreams() {
+    return streams.map((s) => {
+      return <SingleStream key={Math.random()} d={s} />
+    })
+  }
+
+  render() {
+    return(
+      <ul className="mdl-list">
+        {this.mapStreams()}
+      </ul>
+    )
+  }
+}
+
+class Add extends React.Component {
+
   constructor() {
     super();
     this.state = {data: []};
 
     this.handleChange = this.handleChange.bind(this);
     this.parseData = this.parseData.bind(this);
-    this.changeState = this.changeState.bind(this);
   }
 
   handleChange(e) {
     if(e.charCode === 13) {
       let term = e.target.value;
-      this.getWikiData(term);
+      let currentData = this.state.data;
+      currentData.push(term);
+      this.setState({data: currentData})
     }
   }
 
-  changeState(n) {
-    this.setState({data: n})
-  }
-
-  getWikiData(t) {
-    let out = this.changeState;
-    let url = "http://en.wikipedia.org/w/api.php?format=json&action=query&generator=search&gsrnamespace=0&gsrlimit=9&prop=pageimages|extracts&pilimit=max&exintro&explaintext&exsentences=1&exlimit=max&gsrsearch=" + t + "&callback=?";
-    $.ajax({
-      url: url,
-      dataType: "json",
-      success: function(res) {
-        let l = [];
-        let pages = res.query.pages;
-        for(let i in pages) {
-          l.push(pages[i])
-        }
-        console.log(l);
-        out(l);
-      }
-    });
-  }
-
   parseData() {
-    return this.state.data.map((page) => {
-      return <SinglePage key={page.pageid} d={page} />
+    return this.state.data.map((s) => {
+      return <SingleStream key={Math.random()} d={s} />
     })
   }
 
@@ -90,40 +101,63 @@ class Search extends React.Component {
             <label className="mdl-textfield__label" htmlFor="sample-expandable">Expandable Input</label>
           </div>
         </div>
-        <div  className="result-holder">
-          {this.parseData()}
-        </div>
+        {this.parseData()}
       </div>
     )
   }
+
 }
 
-class SinglePage extends React.Component {
 
-  constructor() {
-    super()
+class SingleStream extends React.Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {stream: []};
+
+    this.getStream = this.getStream.bind(this);
+    this.getStream();
+  }
+
+  getStream() {
+    let user = this.props.d;
+    let request = $.when(
+      $.get(info + user), $.get(isLive + user)
+    ).then(function(r1, r2) {
+      if(r1) {
+        this.setState({stream: [r1, r2]});
+        console.log(this.state.stream)
+      }
+    }.bind(this))
   }
 
   render() {
     return (
-      <div className="demo-list-action mdl-list single-row">
-        <div className="mdl-list__item">
-          <span className="mdl-list__item-primary-content">
-            {this.props.d.thumbnail ?
-              <img src={this.props.d.thumbnail.source} className="material-icons mdl-list__item-avatar" /> :
-              <i className="material-icons mdl-list__item-avatar">class</i>}
-            <span>{this.props.d.extract}</span>
-          </span>
+      <li className="single-row mdl-list__item">
+        <span className="mdl-list__item-primary-content">
+          {this.state.stream.length >= 1 ?
+          <img className="material-icons  mdl-list__item-avatar" src={this.state.stream[0][0].logo} /> :
+          <i className="material-icons  mdl-list__item-avatar">person</i>}
+          {this.state.stream.length >= 1 ? this.state.stream[0][0].display_name : this.props.d + " Closed or no account"}
+        </span>
+        {this.state.stream.length >= 1 ?
+          <span class="mdl-list__item-secondary-info">{
+            this.state.stream[1][0].stream ?
+            this.state.stream[1][0].stream.game + " - " + this.state.stream[1][0].stream.viewers :
+              null
+          }</span> : null
+        }
+        {this.state.stream.length >= 1 ?
           <a className="mdl-list__item-secondary-action"
-             href={"https://en.wikipedia.org/?curid=" + this.props.d.pageid} target="_blank">
-            <i className="material-icons">visibility</i>
-          </a>
-        </div>
-      </div>
+             href={this.state.stream.length >= 1 ? this.state.stream[0][0].url : "#"} target="_blank">
+            <i className="material-icons" style={
+            this.state.stream[1][0].stream ? {color: "red"} : {color: "black"}
+            }>visibility</i>
+          </a> : null
+        }
+      </li>
     )
   }
 }
-
 
 ReactDOM.render(<App />, document.getElementById('app'));
