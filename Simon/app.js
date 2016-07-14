@@ -1,6 +1,5 @@
 let soundList = [];
 let colors = ["green", "red", "yellow", "blue"];
-let audioCtx = new (AudioContext || webkitAudioContext)();
 let winRounds = 20;
 let maxSoundTime = 1000;
 let disconnectTime = 500;
@@ -10,6 +9,7 @@ let playing = false;
 let strict = false;
 let index = 0;
 let mouseDown = 0;
+let audioCtx = new (AudioContext || webkitAudioContext)();
 
 function playerButton(e) {
   return playWebAudio(e, canClick)
@@ -18,9 +18,7 @@ function playerButton(e) {
 function playWebAudio(e, check) {
   let color = e.target ? e.target.id : e;
   let freq = 0;
-
   let inter;
-
   switch(color) {
     case "green":
       freq = 150;
@@ -38,15 +36,11 @@ function playWebAudio(e, check) {
 
   if(check) {
     let oscillator = audioCtx.createOscillator();
-
     oscillator.connect(audioCtx.destination);
-
     oscillator.type = "triangle";
     oscillator.frequency.value = freq;
     oscillator.start(0);
-
     document.getElementById(color).className = color + "-";
-
 
     if(check) {
       setTimeout(function() {
@@ -74,7 +68,6 @@ function playWebAudio(e, check) {
       oscillator.disconnect();
     }, maxSoundTime)
   }
-
 }
 
 let playPromise = function(element, timeout) {
@@ -106,7 +99,6 @@ function playSounds(add) {
       playing = true;
       canClick = true;
       document.getElementById("display").innerHTML = soundList.length.toString();
-      // playerTurn()
     }, 550)
   })
   .catch(function(err) {
@@ -148,9 +140,7 @@ function badGuess(playerOption) {
 }
 
 function playerTurn(e) {
-
   let playerOption = e.target ? e.target.id : null;
-
   if(playerOption === soundList[index]) {
     goodGuess(playerOption)
   }
