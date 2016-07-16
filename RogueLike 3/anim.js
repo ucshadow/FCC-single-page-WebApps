@@ -1,6 +1,7 @@
 class MapGenerator {
 
-  constructor() {
+  constructor(level) {
+    this.level = level;
     this.height = 800;
     this.width = 1280;
     this.roomMaxHeight = 7;
@@ -8,10 +9,18 @@ class MapGenerator {
     this.roomMinHeight = 3;
     this.roomMinWidth = 3;
     this.maxRooms = 18;
-    this.tileSize = 32;
+    this.tileSize = 24;
     this.allTiles = [];
-    this.maxEnemies = 8;
-    this.minEnemies = 2;
+    this.maxEnemies = 12;
+    this.minEnemies = 5;
+
+
+    this.weapons = [
+      {"Pointed Stick": {luck: 5, weaponDamage: 6}},
+      {"Giant Rock": {luck: 7, weaponDamage: 7, life: 10}},
+      {"Rusty Sword": {luck: 10, weaponDamage: 10, life: 20}},
+      {"Blunt Hammer": {luck: 15, weaponDamage: 15, life: 30}}
+    ];
 
     this.populateWithDefaultTiles();
 
@@ -99,6 +108,7 @@ class MapGenerator {
     }
     this.addPlayer();
     this.addEnemy();
+    this.addDoorToNextLevel();
   }
 
   addPlayer() {
@@ -107,7 +117,7 @@ class MapGenerator {
       let rnd = this.getRandom(1, this.allTiles.length);
       if (this.allTiles[rnd].type === "room") {
         this.allTiles.push({left: this.allTiles[rnd].left, top: this.allTiles[rnd].top, type: "player",
-        stats: {life: 100, power: 10, luck: 23, weapon: 0}});
+        stats: {life: 100, maxLife: 100, power: 10, luck: 10, weapon: "fist", xp: 0, level: 1, weaponDamage: 5}});
         check = false;
       }
     }
@@ -126,12 +136,18 @@ class MapGenerator {
             type: "enemy",
             className: "enemy",
             id: this.allTiles[rnd].top + "-" + this.allTiles[rnd].left,
-            stats: {life: 20, power: 5}
+            stats: {life: (this.getRandom(10, 30)) * this.level,
+              power: this.getRandom(3, 8) + (this.level * 2),
+              xp: 20 * this.level}
           };
           check = false;
         }
       }
     }
+  }
+
+  addDoorToNextLevel() {
+    this.allTiles[0] = {left: 0, top: 0, id: "0-0", className: "enemy", type: "enemy", stats: {life: this.level}}
   }
 
 }
@@ -160,11 +176,12 @@ class Main extends React.Component {
 
   constructor() {
     super();
-    this.data = new MapGenerator();
+    this.data = new MapGenerator(1);
     this.state = prettySort(this.data.allTiles);
 
     this.renderMap = this.renderMap.bind(this);
     this.addFog = this.addFog.bind(this);
+    this.changeLevel = this.changeLevel.bind(this);
   }
 
   renderMap() {
@@ -184,13 +201,18 @@ class Main extends React.Component {
     })
   }
 
+  changeLevel(nextLevel) {
+    this.setState(nextLevel);
+  }
+
   render() {
     console.log(this.state);
     return (
       <div className="container">
         Hi from main/
         {this.renderMap()}
-        <Game d={{enemies: this.state.enemies, player: this.state.player, tileSize: this.data.tileSize, near: []}} />
+        <Game d={{enemies: this.state.enemies, player: this.state.player, tileSize: this.data.tileSize, near: []}}
+              change={this.changeLevel}/>
       </div>
     )
   }
@@ -207,9 +229,25 @@ class Game extends React.Component {
     this.renderEnemies = this.renderEnemies.bind(this);
     this.getNear = this.getNear.bind(this);
     this.duel = this.duel.bind(this);
+    this.changeLevel = this.changeLevel.bind(this);
   }
 
   componentDidMount() {
+    this.getNear();
+  }
+
+  changeLevel() {
+    let player = this.state.player;
+    let newLevel = prettySort(new MapGenerator(this.state.enemies[0].stats.life + 1).allTiles);
+    let newPlayerPosition = newLevel.player;
+    newLevel.player = player;
+    newLevel.player.top = newPlayerPosition.top;
+    newLevel.player.left = newPlayerPosition.left;
+    this.props.change(newLevel);
+    this.setState({enemies: newLevel.enemies,
+      player: newLevel.player,
+      tileSize: this.props.d.tileSize,
+      near: []});
     this.getNear();
   }
 
@@ -228,36 +266,64 @@ class Game extends React.Component {
   }
 
   getNear() {
-    let leftNear = document.getElementById(this.state.player.top + "-" + (this.state.player.left - 32));
-    let rightNear = document.getElementById(this.state.player.top + "-" + (this.state.player.left + 32));
-    let upNear = document.getElementById((this.state.player.top - 32) + "-" + this.state.player.left);
-    let downNear = document.getElementById(this.state.player.top + 32 + "-" + this.state.player.left);
+    let leftNear = document.getElementById(this.state.player.top + "-" + (this.state.player.left - this.state.tileSize));
+    let rightNear = document.getElementById(this.state.player.top + "-" + (this.state.player.left + this.state.tileSize));
+    let upNear = document.getElementById((this.state.player.top - this.state.tileSize) + "-" + this.state.player.left);
+    let downNear = document.getElementById(this.state.player.top + this.state.tileSize + "-" + this.state.player.left);
     this.setState({near : {up: upNear, down: downNear, left: leftNear, right: rightNear}})
   }
 
   duel(e, direction) {
-    let enemyIndex = null;
-    let allEnemies = this.state.enemies;
-    let near = this.state.near;
-    let enemy = allEnemies.find(function(element, index) {
-      enemyIndex = index;
-      return element.id === e
-    });
-    let player = this.state.player;
-    enemy.stats.life -= player.stats.power;
-    player.stats.life -= enemy.stats.power;
-    if(enemy.stats.life <= 0 ) {
-      enemy.className = "room";
-      near[direction].className = "room"
+    if(e === "0-0") {
+      this.changeLevel();
+    } else {
+      let enemyIndex = null;
+      let allEnemies = this.state.enemies;
+      let near = this.state.near;
+      let enemy = allEnemies.find(function(element, index) {
+        enemyIndex = index;
+        return element.id === e
+      });
+      let enemyXpValue = enemy.stats.xp;
+      let player = this.state.player;
+      let critChance = this.willPlayerCrit(player.stats.luck);
+      enemy.stats.life -= Math.round((player.stats.power + player.stats.weaponDamage) * critChance);
+      player.stats.life -= enemy.stats.power;
+      if(enemy.stats.life <= 0 ) {
+        enemy.className = "room";
+        near[direction].className = "room";
+        player.stats.xp += enemyXpValue;
+        if(player.stats.xp >= 100 * player.stats.level) {
+          player = this.levelUp(player)
+        }
+      }
+      allEnemies[enemyIndex] = enemy;
+      this.setState({player: player, enemies: allEnemies, near: near});
     }
-    allEnemies[enemyIndex] = enemy;
-    this.setState({player: player, enemies: allEnemies, near: near});
+  }
+
+  levelUp(player) {
+    let remainingXp = player.stats.xp - 100 * player.stats.level;
+    player.stats.level += 1;
+    player.stats.xp = remainingXp;
+    player.stats.power += 2 * player.stats.level;
+    player.stats.luck += 3 * player.stats.level;
+    player.stats.maxLife += 20 * player.stats.level;
+    player.stats.life = player.stats.maxLife;
+    return player;
+  }
+
+  willPlayerCrit(chance) {
+    let rnd = Math.floor((Math.random() * 100) + 1);
+    return (rnd <= chance ? 1.5 : 1);
   }
 
   render() {
     return (
       <div>
-        <HandleMovement press={this.updateState} player={this.state.player} near={this.state.near} duel={this.duel}/>
+        <HandleMovement press={this.updateState} player={this.state.player}
+                        near={this.state.near} duel={this.duel}
+                        tileSize={this.state.tileSize} />
         <Player key={Math.random()} d={this.state.player} size={this.props.d.tileSize} />
         {this.renderEnemies()}
       </div>
@@ -285,7 +351,16 @@ class Player extends React.Component {
 
   render() {
     return (
-      <div className="player" style={this.state.style} id="player"> {this.props.d.stats.life} </div>
+      <div className="player" style={this.state.style} id="player">
+        <div className="enemy-info" style={{height: this.props.size, width: this.props.size}}>
+          <span className="enemy-hp">
+            {this.props.d.stats.life}
+          </span>
+          <span className="enemy-power">
+            {this.props.d.stats.power + this.props.d.stats.weaponDamage}
+          </span>
+        </div>
+      </div>
     )
   }
 
@@ -300,15 +375,15 @@ class HandleMovement extends React.Component {
   }
 
   handleKeyDown(e) {
-
     switch (e.key) {
+
       case "w":
         if (this.props.near.up.className !== "wall") {
           if(this.props.near.up.className === "enemy") {
             let id = this.props.near.up.id;
             this.props.duel(id, "up");
           } else {
-            this.props.press("player", "top", -32)
+            this.props.press("player", "top", - this.props.tileSize)
           }
         }
         break;
@@ -318,7 +393,7 @@ class HandleMovement extends React.Component {
             let id = this.props.near.down.id;
             this.props.duel(id, "down");
           } else {
-            this.props.press("player", "top", 32)
+            this.props.press("player", "top", this.props.tileSize)
           }
         }
         break;
@@ -328,7 +403,7 @@ class HandleMovement extends React.Component {
             let id = this.props.near.left.id;
             this.props.duel(id, "left");
           } else {
-            this.props.press("player", "left", -32)
+            this.props.press("player", "left", - this.props.tileSize)
           }
         }
         break;
@@ -338,7 +413,7 @@ class HandleMovement extends React.Component {
             let id = this.props.near.right.id;
             this.props.duel(id, "right");
           } else {
-            this.props.press("player", "left", 32)
+            this.props.press("player", "left", this.props.tileSize)
           }
         }
         break;
@@ -404,6 +479,7 @@ class Enemy extends React.Component {
 
   constructor(props) {
     super(props);
+
     this.alive = {
       position: "absolute",
       top: this.props.d.top,
@@ -422,14 +498,38 @@ class Enemy extends React.Component {
       height: this.props.size,
       width: this.props.size,
       zIndex: 98
+    };
+
+    this.door = {
+      position: "absolute",
+      top: this.props.d.top,
+      left: this.props.d.left,
+      background: "purple",
+      height: this.props.size,
+      width: this.props.size,
+      zIndex: 98,
+      color: "white"
     }
   }
 
   render() {
-    return <div className={this.props.d.className}
-                style={this.props.d.stats.life > 0 ? this.alive : this.dead}
+    return (
+      <div className={this.props.d.className}
+                style={this.props.d.id === "0-0" ? this.door : this.props.d.stats.life > 0 ? this.alive : this.dead}
                 id={this.props.d.id}>
-      {this.props.d.stats.life > 0 ? this.props.d.stats.life : null}</div>
+        <div className="enemy-info" style={{height: this.props.size, width: this.props.size}}>
+          <span className="enemy-hp" >
+            {this.props.d.id === "0-0" ?
+            "l: " + this.props.d.stats.life :
+              this.props.d.stats.life > 0 ? this.props.d.stats.life : null}
+          </span>
+          <span className="enemy-power" >
+            {this.props.d.id === "0-0" ?
+            null : this.props.d.stats.life > 0 ? this.props.d.stats.power : null}
+          </span>
+        </div>
+      </div>
+    )
   }
 }
 
