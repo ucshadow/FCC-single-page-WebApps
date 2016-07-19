@@ -1,0 +1,21 @@
+{
+  "name": "filesize",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "SHADOW",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.0",
+    "multer": "^1.1.0"
+  },
+  "engines": {
+    "node": "6.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.9.2"
+  }
+}
