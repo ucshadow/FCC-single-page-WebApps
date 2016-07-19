@@ -7,7 +7,7 @@ const URL = mongoose.model('URL', urlSchema);
 const validUrl = require('valid-url');
 
 
-mongoose.connect('mongodb://heroku_0j1kcbhh:lcjsj2a46mug642e8gm063da9c@ds023425.mlab.com:23425/heroku_0j1kcbhh');
+mongoose.connect('mongodb://heroku_');
 app.use(express.static(__dirname));
 
 
