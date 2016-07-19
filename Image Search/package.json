@@ -1,0 +1,27 @@
+{
+  "name": "urlshortner",
+  "version": "1.0.0",
+  "description": "url shortener ",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "SHADOW",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^0.20.0",
+    "entities": "^1.1.1",
+    "express": "^4.14.0",
+    "mongodb": "^2.2.2",
+    "mongoose": "^4.5.4",
+    "request": "^2.73.0",
+    "request-promise": "^4.0.2",
+    "valid-url": "^1.0.9"
+  },
+  "engines": {
+    "node": "6.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.9.2"
+  }
+}
